@@ -306,6 +306,14 @@ aws_create_file_system(){
     echo "EFS already exists, skipping to the next step."
     efs_fs_id=$(grep 'efs=' $real_path/.cluster/$CLUSTER_NAME-$REGION.cs | cut -d '=' -f 2)
   fi
+
+  echo -n "Waiting for EFS to be available... "
+  efs_state=
+  while [[ "${efs_state}" != "available" ]]; do
+    sleep 1
+    efs_state=$(aws efs describe-file-systems | jq ".FileSystems[] | select(.FileSystemId==\"$efs_fs_id\") | .LifeCycleState" | tr -d \")
+  done
+  echo "Done"
 }
 
 aws_get_vpc_id(){
